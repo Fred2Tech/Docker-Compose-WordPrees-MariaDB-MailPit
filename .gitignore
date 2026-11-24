@@ -25,6 +25,8 @@ data/wordpress/wp-content/*.log
 data/wordpress/wp-content/themes/twenty*/
 data/wordpress/wp-content/plugins/akismet/
 data/wordpress/wp-content/plugins/hello.php
+data/wordpress/wp-content/plugins/index.php
+data/wordpress/wp-content/themes/index.php
 
 # Misc
 .env
