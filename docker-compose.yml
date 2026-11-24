@@ -1,0 +1,51 @@
+services:
+  db:
+    image: mariadb:11
+    container_name: wp-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+      MARIADB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  wordpress:
+    build: .
+    container_name: wp-wordpress
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    ports:
+      - "8080:80"    # HTTP
+      - "8443:443"   # HTTPS (self-signed certificate)
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - ./data/wordpress:/var/www/html
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: wp-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # Mailpit web UI
+      # SMTP (1025) only reachable from the Docker network
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - ./data/mailpit:/data
